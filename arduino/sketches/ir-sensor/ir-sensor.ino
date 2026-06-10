@@ -48,36 +48,8 @@ void setup()
 //   Serial.println("");
 // }
 
-void loop()
-{
-    ledState = !ledState;
-    if (ledState) { digitalWrite(ledPin,HIGH); } else { digitalWrite(ledPin,LOW); }
-
-    //IR sensor read
-    Wire.beginTransmission(slaveAddress);
-    Wire.write(0x36);
-    Wire.endTransmission();
-
-    Wire.requestFrom(slaveAddress, 16);        // Request the 2 byte heading (MSB comes first)
-    for (i=0;i<16;i++) { data_buf[i]=0; }
-    i=0;
-    while(Wire.available() && i < 16) {
-        data_buf[i] = Wire.read();
-        i++;
-    }
-
-    // for (i = 0; i < 4; i++) {
-    //   int index = i * 4;
-    //   Ix[i] = data_buf[index + 1];
-    //   Iy[i] = data_buf[index + 2];
-    //   s = data_buf[index + 3];
-    //   Ix[i] += (s & 0x30) <<4;
-    //   Iy[i] += (s & 0xC0) <<2;
-
-    //   // print_index(i, index);
-    // }
-
-    Ix[0] = data_buf[1];
+void write_coordinates() {
+  Ix[0] = data_buf[1];
     Iy[0] = data_buf[2];
     s = data_buf[3];
     Ix[0] += (s & 0x30) <<4;
@@ -100,6 +72,37 @@ void loop()
     s = data_buf[12];
     Ix[3] += (s & 0x30) <<4;
     Iy[3] += (s & 0xC0) <<2;
+}
+
+void loop()
+{
+    ledState = !ledState;
+    if (ledState) { digitalWrite(ledPin,HIGH); } else { digitalWrite(ledPin,LOW); }
+
+    //IR sensor read
+    Wire.beginTransmission(slaveAddress);
+    Wire.write(0x36);
+    Wire.endTransmission();
+
+    Wire.requestFrom(slaveAddress, 16);        // Request the 2 byte heading (MSB comes first)
+    for (i=0;i<16;i++) { data_buf[i]=0; }
+    i=0;
+    while(Wire.available() && i < 16) {
+        data_buf[i] = Wire.read();
+        i++;
+    }
+
+    for (i = 0; i < 4; i++) {
+      int index = i * 3;
+      Ix[i] = data_buf[index + 1];
+      Iy[i] = data_buf[index + 2];
+      s = data_buf[index + 3];
+      Ix[i] += (s & 0x30) <<4;
+      Iy[i] += (s & 0xC0) <<2;
+      // print_index(i, index);
+    }
+
+    // write_coordinates();
 
     for(i=0; i<4; i++)
     {
